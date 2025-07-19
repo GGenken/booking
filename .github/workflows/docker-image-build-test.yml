@@ -1,0 +1,22 @@
+name: Build Check
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - '**/README*'
+      - '**/LICENSE*'
+      - '**/.gitignore'
+      - '.idea/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Building
+      run: docker compose build --no-cache
