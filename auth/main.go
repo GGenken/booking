@@ -6,6 +6,5 @@ import (
 
 func main() {
 	a := app.New()
-	a.InitializeRoutes()
 	a.Run(":8080")
 }

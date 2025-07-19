@@ -10,7 +10,8 @@ import (
 )
 
 type App struct {
-	DB *gorm.DB
+	DB     *gorm.DB
+	Router *http.ServeMux
 }
 
 func New() *App {
@@ -18,16 +19,13 @@ func New() *App {
 	if err := database.AutoMigrate(&models.User{}); err != nil {
 		log.Fatal(err)
 	}
-	return &App{DB: database}
-}
-
-func (a *App) InitializeRoutes() {
-	http.HandleFunc("/ping", handlers.PingHandler())
+	router := handlers.InitializeRouter(database)
+	return &App{DB: database, Router: router}
 }
 
 func (a *App) Run(addr string) {
 	log.Println("listening on", addr)
-	if err := http.ListenAndServe(addr, nil); err != nil {
+	if err := http.ListenAndServe(addr, a.Router); err != nil {
 		log.Fatal(err)
 	}
 }
