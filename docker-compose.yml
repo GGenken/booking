@@ -57,6 +57,7 @@ services:
       DB_NAME: ${MAIN_DB:-main}
       DB_USER: ${MAIN_DB_USER:-main}
       DB_PASS: ${MAIN_DB_PASS:-main_pass}
+      JWT_SECRET: ${JWT_SECRET}
     ports:
       - "80:80"
     networks:

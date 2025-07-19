@@ -11,6 +11,7 @@ func InitializeRouter(db *gorm.DB) *http.ServeMux {
 
 	router.Handle("/ping", middleware.Apply(PingHandler(), middleware.WithDB(db)))
 	router.Handle("/register", middleware.Apply(RegisterHandler(), middleware.WithDB(db)))
+	router.Handle("/login", middleware.Apply(LoginHandler(), middleware.WithDB(db)))
 
 	return router
 }
