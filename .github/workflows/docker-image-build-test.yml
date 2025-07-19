@@ -10,6 +10,7 @@ on:
       - '**/LICENSE*'
       - '**/.gitignore'
       - '.idea/**'
+  workflow_dispatch:
 
 jobs:
   build:
