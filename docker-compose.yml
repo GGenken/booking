@@ -1,0 +1,59 @@
+name: booking
+services:
+  database:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-root}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root_pass}
+      AUTH_DB: ${AUTH_DB:-auth}
+      AUTH_DB_USER: ${AUTH_DB_USER:-auth}
+      AUTH_DB_PASS: ${AUTH_DB_PASS:-auth_pass}
+      MAIN_DB: ${MAIN_DB:-main}
+      MAIN_DB_USER: ${MAIN_DB_USER:-main}
+      MAIN_DB_PASS: ${MAIN_DB_PASS:-main_pass}
+    volumes:
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      booking:
+        ipv4_address: 172.20.0.2
+
+  auth:
+    build:
+      context: ./auth
+    depends_on:
+      - database
+    environment:
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_NAME: ${AUTH_DB:-auth}
+      DB_USER: ${AUTH_DB_USER:-auth}
+      DB_PASS: ${AUTH_DB_PASS:-auth_pass}
+    networks:
+      booking:
+        ipv4_address: 172.20.0.3
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      - database
+    environment:
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_NAME: ${MAIN_DB:-main}
+      DB_USER: ${MAIN_DB_USER:-main}
+      DB_PASS: ${MAIN_DB_PASS:-main_pass}
+    ports:
+      - "80:80"
+    networks:
+      booking:
+        ipv4_address: 172.20.0.4
+
+networks:
+  booking:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+          gateway: 172.20.0.1
