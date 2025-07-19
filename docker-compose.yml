@@ -12,6 +12,12 @@ services:
       MAIN_DB: ${MAIN_DB:-main}
       MAIN_DB_USER: ${MAIN_DB_USER:-main}
       MAIN_DB_PASS: ${MAIN_DB_PASS:-main_pass}
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "$POSTGRES_USER", "-d", "$POSTGRES_DB" ]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 5s
     volumes:
       - ./database/init:/docker-entrypoint-initdb.d
     networks:
