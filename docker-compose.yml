@@ -35,6 +35,12 @@ services:
       DB_NAME: ${AUTH_DB:-auth}
       DB_USER: ${AUTH_DB_USER:-auth}
       DB_PASS: ${AUTH_DB_PASS:-auth_pass}
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "http://localhost:8080/ping" ]
+      interval: 10s
+      retries: 2
+      start_period: 20s
+      timeout: 5s
     networks:
       booking:
         ipv4_address: 172.20.0.3
