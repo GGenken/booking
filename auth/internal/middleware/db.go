@@ -23,6 +23,9 @@ func WithDB(db *gorm.DB) func(http.Handler) http.Handler {
 
 func GetDB(r *http.Request) *gorm.DB {
 	if db, ok := r.Context().Value(dbKey).(*gorm.DB); ok {
+		if db == nil {
+			panic("DB is nil")
+		}
 		return db
 	}
 	panic("Database is unavailable") // TODO: create a recovery middleware
