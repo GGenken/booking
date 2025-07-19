@@ -9,8 +9,8 @@ import (
 func InitializeRouter(db *gorm.DB) *http.ServeMux {
 	router := http.NewServeMux()
 
-	pingHandlerWithMiddleware := middleware.Apply(PingHandler(), middleware.WithDB(db))
-	router.Handle("/ping", pingHandlerWithMiddleware)
+	router.Handle("/ping", middleware.Apply(PingHandler(), middleware.WithDB(db)))
+	router.Handle("/register", middleware.Apply(RegisterHandler(), middleware.WithDB(db)))
 
 	return router
 }
