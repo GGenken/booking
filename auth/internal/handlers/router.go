@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"auth/internal/middleware"
 	"gorm.io/gorm"
 	"net/http"
 )
@@ -8,7 +9,8 @@ import (
 func InitializeRouter(db *gorm.DB) *http.ServeMux {
 	router := http.NewServeMux()
 
-	router.Handle("/ping", PingHandler())
+	pingHandlerWithMiddleware := middleware.Apply(PingHandler(), middleware.WithDB(db))
+	router.Handle("/ping", pingHandlerWithMiddleware)
 
 	return router
 }

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"gorm.io/gorm"
@@ -24,5 +25,10 @@ func GetDB(r *http.Request) *gorm.DB {
 	if db, ok := r.Context().Value(dbKey).(*gorm.DB); ok {
 		return db
 	}
-	return nil
+	panic("Database is unavailable") // TODO: create a recovery middleware
+}
+
+func GetPool(r *http.Request) *sql.DB {
+	db, _ := GetDB(r).DB()
+	return db
 }
