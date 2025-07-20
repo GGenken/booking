@@ -51,8 +51,7 @@ func RegisterHandler() http.HandlerFunc {
 
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"id":       user.UID,
-			"uid":      user.UUID,
+			"uuid":     user.UUID,
 			"role":     user.Role,
 			"username": user.Username,
 		})
