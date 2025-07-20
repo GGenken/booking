@@ -63,6 +63,12 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     ports:
       - "80:80"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "http://localhost:80/api/ping" ]
+      interval: 10s
+      retries: 2
+      start_period: 10s
+      timeout: 5s
     networks:
       booking:
         ipv4_address: 172.20.0.4
