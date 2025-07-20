@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 
 @RestController
 public class PingController {
-    @GetMapping("/ping")
+    @GetMapping("/api/ping")
     public ResponseEntity<Void> ping() {
         return ResponseEntity.ok().build();
     }
