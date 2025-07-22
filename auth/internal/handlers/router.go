@@ -20,6 +20,7 @@ func InitializeRouter(db *gorm.DB) *http.ServeMux {
 		"/register",
 		middleware.Apply(
 			RegisterHandler(),
+			middleware.Method(http.MethodPost),
 			middleware.WithDB(db),
 			middleware.JSONContentType,
 		),
@@ -28,6 +29,7 @@ func InitializeRouter(db *gorm.DB) *http.ServeMux {
 		"/login",
 		middleware.Apply(
 			LoginHandler(),
+			middleware.Method(http.MethodPost),
 			middleware.WithDB(db),
 			middleware.JSONContentType,
 		),
