@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public class AuthRequestDto {
+public class UserRequestDto {
     @NotBlank(message = "Username is required")
     @Size(min = 2, max = 16, message = "Username must be from 2 to 16 characters")
     @Pattern(

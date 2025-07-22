@@ -1,14 +1,19 @@
 package dev.genken.backend.service;
 
+import dev.genken.backend.dto.AuthResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
-import dev.genken.backend.dto.AuthRequestDto;
-import dev.genken.backend.dto.AuthResponseDto;
+import dev.genken.backend.dto.UserRequestDto;
+import dev.genken.backend.dto.UserResponseDto;
 import dev.genken.backend.entity.User;
 import dev.genken.backend.repository.UserRepository;
 
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -24,10 +29,10 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
-    public AuthResponseDto register(AuthRequestDto request) {
+    public UserResponseDto register(UserRequestDto request) {
         // TODO: check for a server's response code
-        AuthResponseDto response = restTemplate
-            .postForObject(authServiceUrl + "/register", request, AuthResponseDto.class);
+        UserResponseDto response = restTemplate
+            .postForObject(authServiceUrl + "/register", request, UserResponseDto.class);
 
         try {
             saveUser(response.getUsername(), response.getUuid(), response.getRole());
@@ -37,11 +42,18 @@ public class AuthService {
         return response;
     }
 
-    public AuthResponseDto login(AuthRequestDto request) {
-        AuthResponseDto response = restTemplate
-            .postForObject(authServiceUrl + "/login", request, AuthResponseDto.class);
-        saveOrUpdateUser(response.getUsername(), response.getUuid(), response.getRole());
-        return response;
+    public AuthResponseDto login(UserRequestDto request) {
+        String url = authServiceUrl + "/login";
+        try {
+            AuthResponseDto response = restTemplate.postForObject(url, request, AuthResponseDto.class);
+            return response;
+        } catch (HttpClientErrorException.Unauthorized e) {
+            throw new SecurityException("Invalid credentials");
+        } catch (HttpStatusCodeException e) {
+            throw new IllegalStateException(
+                "Auth service error: " + e.getStatusCode() + " → " + e.getResponseBodyAsString()
+            );
+        }
     }
 
     private void saveUser(String username, UUID uuid, String role) {
@@ -62,5 +74,16 @@ public class AuthService {
         user.setUuid(uuid);
         user.setRole(role);
         userRepository.save(user);
+    }
+
+    public void deleteUser(UUID uuid) {
+        String url = this.authServiceUrl + "/users/" + uuid;
+        try {
+            restTemplate.exchange(url, HttpMethod.DELETE, null, Void.class);
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new NoSuchElementException("User not found in auth service");
+        } catch (HttpStatusCodeException e) {
+            throw new IllegalStateException("Auth service error: " + e.getMessage());
+        }
     }
 }

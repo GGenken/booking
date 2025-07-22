@@ -1,21 +1,14 @@
 package dev.genken.backend.dto;
 
-import java.util.UUID;
-
 public class AuthResponseDto {
-    private UUID uuid;
-    private String role;
-    private String username;
+    private UserResponseDto user;
+    private String token;
 
-    public UUID getUuid() { return uuid; }
+    public UserResponseDto getUser() { return user; }
 
-    public void setUuid(String uuid) { this.uuid = UUID.fromString(uuid); }
+    public void setUser(UserResponseDto user) { this.user = user; }
 
-    public String getRole() { return role; }
+    public String getToken() { return token; }
 
-    public void setRole(String role) { this.role = role; }
-
-    public String getUsername() { return username; }
-
-    public void setUsername(String username) { this.username = username; }
+    public void setToken(String token) { this.token = token; }
 }
