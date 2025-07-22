@@ -35,5 +35,15 @@ func InitializeRouter(db *gorm.DB) *http.ServeMux {
 		),
 	)
 
+	router.Handle(
+		"/users/{uuid}",
+		middleware.Apply(
+			RegisterHandler(),
+			middleware.Method(http.MethodDelete),
+			middleware.WithDB(db),
+			middleware.JSONContentType,
+		),
+	)
+
 	return router
 }
