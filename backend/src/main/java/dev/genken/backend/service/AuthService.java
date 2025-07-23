@@ -12,6 +12,8 @@ import dev.genken.backend.dto.UserRequestDto;
 import dev.genken.backend.dto.UserResponseDto;
 import dev.genken.backend.entity.User;
 import dev.genken.backend.repository.UserRepository;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -29,11 +31,16 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
-    public UserResponseDto register(UserRequestDto request) {
+    public UserResponseDto register(UserRequestDto request, String token) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Auth-Token", token);
+        HttpEntity<UserRequestDto> request_params = new HttpEntity<>(request, headers);
+        UserResponseDto response = restTemplate.postForEntity(
+            authServiceUrl + "/register",
+            request_params,
+            UserResponseDto.class
+        ).getBody();
         // TODO: check for a server's response code
-        UserResponseDto response = restTemplate
-            .postForObject(authServiceUrl + "/register", request, UserResponseDto.class);
-
         try {
             saveUser(response.getUsername(), response.getUuid(), response.getRole());
         } catch (DataIntegrityViolationException e) {
@@ -50,9 +57,7 @@ public class AuthService {
         } catch (HttpClientErrorException.Unauthorized e) {
             throw new SecurityException("Invalid credentials");
         } catch (HttpStatusCodeException e) {
-            throw new IllegalStateException(
-                "Auth service error: " + e.getStatusCode() + " → " + e.getResponseBodyAsString()
-            );
+            throw new IllegalStateException("Auth service error: " + e.getStatusCode() + " → " + e.getResponseBodyAsString());
         }
     }
 
@@ -65,21 +70,23 @@ public class AuthService {
     }
 
     private void saveOrUpdateUser(String username, UUID uuid, String role) {
-        User user = userRepository.findByUuid(uuid)
-            .orElseGet(() -> {
-                User u = new User();
-                u.setUsername(username);
-                return u;
-            });
+        User user = userRepository.findByUuid(uuid).orElseGet(() -> {
+            User u = new User();
+            u.setUsername(username);
+            return u;
+        });
         user.setUuid(uuid);
         user.setRole(role);
         userRepository.save(user);
     }
 
-    public void deleteUser(UUID uuid) {
-        String url = this.authServiceUrl + "/users/" + uuid;
+    public void deleteUser(UUID uuid, String token) {
+        String url = authServiceUrl + "/users/" + uuid;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Auth-Token", token);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
         try {
-            restTemplate.exchange(url, HttpMethod.DELETE, null, Void.class);
+            restTemplate.exchange(url, HttpMethod.DELETE, request, Void.class);
         } catch (HttpClientErrorException.NotFound e) {
             throw new NoSuchElementException("User not found in auth service");
         } catch (HttpStatusCodeException e) {
