@@ -21,6 +21,7 @@ func InitializeRouter(db *gorm.DB) *http.ServeMux {
 		middleware.Apply(
 			RegisterHandler(),
 			middleware.Method(http.MethodPost),
+			middleware.WithAdminPermissions(),
 			middleware.WithDB(db),
 			middleware.JSONContentType,
 		),
@@ -40,6 +41,7 @@ func InitializeRouter(db *gorm.DB) *http.ServeMux {
 		middleware.Apply(
 			RegisterHandler(),
 			middleware.Method(http.MethodDelete),
+			middleware.WithAdminPermissions(),
 			middleware.WithDB(db),
 			middleware.JSONContentType,
 		),
