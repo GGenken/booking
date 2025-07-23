@@ -34,5 +34,5 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$MAIN_DB" <<-EOSQL
     ALTER SCHEMA public OWNER TO $MAIN_DB_USER;
 EOSQL
 
-psql -v ON_ERROR_STOP=1 --username "$AUTH_DB_USER" --dbname "$AUTH_DB" < /docker-entrypoint-initdb.d/01-auth.sql
-psql -v ON_ERROR_STOP=1 --username "$MAIN_DB_USER" --dbname "$MAIN_DB" < /docker-entrypoint-initdb.d/02-main.sql
+psql -v ON_ERROR_STOP=1 --username "$AUTH_DB_USER" --dbname "$AUTH_DB" < /docker-entrypoint-initdb.d/sql/01-auth.sql
+psql -v ON_ERROR_STOP=1 --username "$MAIN_DB_USER" --dbname "$MAIN_DB" < /docker-entrypoint-initdb.d/sql/02-main.sql
