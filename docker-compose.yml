@@ -11,14 +11,17 @@ services:
       MAIN_DB: ${MAIN_DB:-main}
       MAIN_DB_USER: ${MAIN_DB_USER:-main}
       MAIN_DB_PASS: ${MAIN_DB_PASS:-main_pass}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}  # set this in the .env!
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "$POSTGRES_USER", "-d", "$POSTGRES_DB" ]
-      interval: 5s
+      test: [ "CMD-SHELL", "/scripts/healthcheck.sh" ]
+      interval: 30s
       retries: 3
       start_period: 2s
       timeout: 3s
     volumes:
       - ./database/init:/docker-entrypoint-initdb.d
+      - ./database/sh:/scripts
     networks:
       booking:
         ipv4_address: 172.20.0.2
@@ -60,7 +63,6 @@ services:
       DB_NAME: ${MAIN_DB:-main}
       DB_USER: ${MAIN_DB_USER:-main}
       DB_PASS: ${MAIN_DB_PASS:-main_pass}
-      JWT_SECRET: ${JWT_SECRET}
       AUTH_HOST: auth
       AUTH_PORT: 8080
     ports:
