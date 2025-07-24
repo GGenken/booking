@@ -1,5 +1,6 @@
 package dev.genken.backend.config;
 
+import dev.genken.backend.repository.UserRepository;
 import dev.genken.backend.security.JwtAuthenticationFilter;
 import dev.genken.backend.service.JwtVerificationService;
 import org.springframework.context.annotation.Bean;
@@ -11,13 +12,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtVerificationService verificationService) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+        HttpSecurity http, JwtVerificationService verificationService, UserRepository userRepository
+    ) throws Exception {
         http.authorizeHttpRequests(
             authz -> authz.anyRequest().permitAll()
         )
             .csrf(csrf -> csrf.disable())
             .addFilterBefore(
-                new JwtAuthenticationFilter(verificationService),
+                new JwtAuthenticationFilter(verificationService, userRepository),
                 UsernamePasswordAuthenticationFilter.class
             );
 

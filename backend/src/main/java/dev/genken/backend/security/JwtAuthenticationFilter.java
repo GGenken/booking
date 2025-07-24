@@ -1,13 +1,18 @@
 package dev.genken.backend.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.genken.backend.entity.Role;
+import dev.genken.backend.entity.User;
 import dev.genken.backend.exception.JwtVerificationException;
+import dev.genken.backend.repository.UserRepository;
 import dev.genken.backend.service.JwtVerificationService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
@@ -19,18 +24,17 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
 import java.io.IOException;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.text.ParseException;
-import java.util.UUID;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtVerificationService verificationService;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public JwtAuthenticationFilter(JwtVerificationService verificationService) {
+    public JwtAuthenticationFilter(JwtVerificationService verificationService, UserRepository userRepository) {
         this.verificationService = verificationService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -38,8 +42,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         throws ServletException, IOException {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 
+        Optional<User> user;
+        String token = "";
+        SimpleGrantedAuthority authority;
         if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
+            token = header.substring(7);
             verificationService.verifyToken(token);
 
             Map<String, Object> claims;
@@ -51,20 +58,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 throw new BadCredentialsException("Invalid JWT format", e);
             }
 
-            String username = (String) claims.getOrDefault("username", "anonymous");
-            String role = (String) claims.getOrDefault("role", "guest");
-
-            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, List.of(authority));
-
-            auth.setDetails(claims);
-            SecurityContextHolder.getContext().setAuthentication(auth);
+            UUID uuid = UUID.fromString((String) claims.get("uuid"));
+            user = userRepository.findByUuid(uuid);
+            authority = new SimpleGrantedAuthority(Role.USER.getAuthority());
         } else {
-            SimpleGrantedAuthority guestAuth = new SimpleGrantedAuthority("guest");
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken("anonymous", null, List.of(guestAuth));
-            auth.setDetails(Map.of("username", "anonymous", "role", "guest"));
-            SecurityContextHolder.getContext().setAuthentication(auth);
+            user = Optional.empty();
+            authority = new SimpleGrantedAuthority(Role.GUEST.getAuthority());
         }
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+            user, token, List.of(authority)
+        );
+
+        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(auth);
         filterChain.doFilter(request, response);
     }
 }

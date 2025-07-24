@@ -17,7 +17,8 @@ public class User {
     @Column(nullable = false, unique = true)
     private String username;
 
-    private String role = "user";
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.USER;
 
     public Long getId() { return id; }
 
@@ -33,11 +34,11 @@ public class User {
 
     public void setUsername(String username) { this.username = username; }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 }

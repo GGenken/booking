@@ -1,5 +1,6 @@
 package dev.genken.backend.config;
 
+import dev.genken.backend.repository.UserRepository;
 import dev.genken.backend.service.JwtVerificationService;
 import dev.genken.backend.security.JwtAuthenticationFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -15,9 +16,11 @@ public class AppConfig {
     }
 
     @Bean
-    public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilter(JwtVerificationService verificationService) {
+    public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilter(
+        JwtVerificationService verificationService, UserRepository userRepository
+    ) {
         FilterRegistrationBean<JwtAuthenticationFilter> reg = new FilterRegistrationBean<>();
-        reg.setFilter(new JwtAuthenticationFilter(verificationService));
+        reg.setFilter(new JwtAuthenticationFilter(verificationService, userRepository));
         reg.addUrlPatterns("/api/*");
         reg.setOrder(1);
         return reg;

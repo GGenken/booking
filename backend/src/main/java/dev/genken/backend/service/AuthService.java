@@ -1,6 +1,7 @@
 package dev.genken.backend.service;
 
 import dev.genken.backend.dto.AuthResponseDto;
+import dev.genken.backend.entity.Role;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpMethod;
@@ -61,7 +62,7 @@ public class AuthService {
         }
     }
 
-    private void saveUser(String username, UUID uuid, String role) {
+    private void saveUser(String username, UUID uuid, Role role) {
         User user = new User();
         user.setUsername(username);
         user.setUuid(uuid);
@@ -69,7 +70,7 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    private void saveOrUpdateUser(String username, UUID uuid, String role) {
+    private void saveOrUpdateUser(String username, UUID uuid, Role role) {
         User user = userRepository.findByUuid(uuid).orElseGet(() -> {
             User u = new User();
             u.setUsername(username);
