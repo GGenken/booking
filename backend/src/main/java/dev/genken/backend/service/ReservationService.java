@@ -60,6 +60,10 @@ public class ReservationService {
         return reservationRepository.findByUser(user);
     }
 
+    public List<Reservation> getReservationsBySeat(Seat seat) {
+        return reservationRepository.findBySeat(seat);
+    }
+
     public Reservation getReservationById(Long id) {
         return reservationRepository.findById(id)
             .orElseThrow(() -> new NoSuchElementException("Reservation not found"));
