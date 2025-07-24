@@ -23,7 +23,7 @@ jobs:
       run: docker compose build --no-cache
 
     - name: Start Docker Compose
-      run: docker-compose up -d
+      run: docker compose up -d
 
     - name: Wait for healthcheck
       run: |
@@ -43,4 +43,4 @@ jobs:
         echo "All services' healthchecks had passed"
 
     - name: Shut down
-      run: docker-compose down
+      run: docker compose down
