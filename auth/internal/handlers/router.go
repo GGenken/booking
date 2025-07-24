@@ -47,5 +47,15 @@ func InitializeRouter(db *gorm.DB) *http.ServeMux {
 		),
 	)
 
+	router.Handle(
+		"/verify-jwt",
+		middleware.Apply(
+			JWTVerificationHandler(),
+			middleware.Method(http.MethodPost),
+			middleware.WithDB(db),
+			middleware.JSONContentType,
+		),
+	)
+
 	return router
 }
