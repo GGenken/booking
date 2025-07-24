@@ -32,15 +32,18 @@ public class ReservationController {
     }
 
     @PostMapping
-    @Operation(summary = "Create a new reservation", description = "Create a new reservation for a user, specifying seat and times")
+    @Operation(summary = "Create a new reservation", description = "Create a new reservation for a user, specifying seat and times; the reservation time must be longer than 5 minutes, shorter than 24 hours and it must not overlap with other reservations")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Reservation created successfully"), @ApiResponse(responseCode = "401", description = "Unauthorized - User not authenticated"), @ApiResponse(responseCode = "400", description = "Bad Request - Invalid input")})
     public ResponseEntity<Reservation> createReservation(@AuthenticationPrincipal User user, @Parameter(description = "ID of the seat to be reserved") @RequestParam Long seatId, @Parameter(description = "Start time of the reservation") @RequestParam LocalDateTime startTime, @Parameter(description = "End time of the reservation") @RequestParam LocalDateTime endTime) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
-        Reservation reservation = reservationService.createReservation(seatId, user, startTime, endTime);
-        return ResponseEntity.created(URI.create("/api/reservations/" + reservation.getId())).body(reservation);
+        try {
+            Reservation reservation = reservationService.createReservation(seatId, user, startTime, endTime);
+            return ResponseEntity.created(URI.create("/api/reservations/" + reservation.getId())).body(reservation);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @GetMapping
