@@ -17,6 +17,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -90,6 +91,8 @@ public class AuthService {
         HttpEntity<Void> request = new HttpEntity<>(headers);
         try {
             restTemplate.exchange(url, HttpMethod.DELETE, request, Void.class);
+            Optional<User> userToDelete = userRepository.findByUuid(UUID.fromString(uuid.toString()));
+            userToDelete.ifPresent(userRepository::delete);
         } catch (HttpClientErrorException.NotFound e) {
             throw new NoSuchElementException("User not found in auth service");
         } catch (HttpStatusCodeException e) {
