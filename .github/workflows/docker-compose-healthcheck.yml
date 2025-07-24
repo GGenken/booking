@@ -21,12 +21,12 @@ jobs:
 
     - name: Build & Start Docker Compose
       run: |
-        docker compose up -d --build || docker compose ps || docker inspect --format '{{json .State.Health}}' booking-database-1
+        docker compose up -d --build || docker inspect --format '{{json .State.Health}}' booking-database-1
 
     - name: Wait for healthcheck
       run: |
         timeout=180
-        for service in $(docker-compose ps -q); do
+        for service in $(docker compose ps -q); do
           elapsed=0
           while [[ $(docker inspect --format '{{.State.Health.Status}}' $service) != "healthy" && $elapsed -lt $timeout ]]; do
             echo "Running, elapsed: $elapsed seconds)"
