@@ -1,6 +1,8 @@
 package dev.genken.backend.controller;
 
 import dev.genken.backend.dto.UserRequestDto;
+import dev.genken.backend.entity.Role;
+import dev.genken.backend.entity.User;
 import jakarta.validation.Valid;
 
 import java.util.NoSuchElementException;
@@ -14,12 +16,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -70,5 +69,13 @@ public class AuthController {
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<?> getUsers(@AuthenticationPrincipal User user) {
+        if (user == null || user.getRole() != Role.ADMIN) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(authService.getAllUsers());
     }
 }

@@ -16,6 +16,7 @@ import dev.genken.backend.repository.UserRepository;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
@@ -99,4 +100,6 @@ public class AuthService {
             throw new IllegalStateException("Auth service error: " + e.getMessage());
         }
     }
+
+    public List<User> getAllUsers() { return userRepository.findAll(); }
 }
