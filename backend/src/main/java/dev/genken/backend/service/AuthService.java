@@ -54,11 +54,13 @@ public class AuthService {
         String url = authServiceUrl + "/login";
         try {
             AuthResponseDto response = restTemplate.postForObject(url, request, AuthResponseDto.class);
+            UserResponseDto user_parsed = response.getUser();
+            saveOrUpdateUser(user_parsed.getUsername(), user_parsed.getUuid(), user_parsed.getRole());
             return response;
         } catch (HttpClientErrorException.Unauthorized e) {
             throw new SecurityException("Invalid credentials");
         } catch (HttpStatusCodeException e) {
-            throw new IllegalStateException("Auth service error: " + e.getStatusCode() + " → " + e.getResponseBodyAsString());
+            throw new IllegalStateException("Auth service error");
         }
     }
 
