@@ -21,7 +21,7 @@ jobs:
 
     - name: Build & Start Docker Compose
       run: |
-        docker compose up -d --build || docker inspect --format '{{json .State.Health}}' booking-database-1
+        docker compose up -d
 
     - name: Wait for healthcheck
       run: |

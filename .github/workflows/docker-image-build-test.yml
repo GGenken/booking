@@ -1,15 +1,6 @@
 name: Build Check
 
 on:
-  push:
-    branches: [ main ]
-    paths-ignore:
-      - '**.md'
-      - '.github/**'
-      - '**/README*'
-      - '**/LICENSE*'
-      - '**/.gitignore'
-      - '.idea/**'
   workflow_dispatch:
 
 jobs:
