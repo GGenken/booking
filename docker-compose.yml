@@ -17,11 +17,13 @@ services:
       test: [ "CMD-SHELL", "/scripts/healthcheck.sh" ]
       interval: 30s
       retries: 3
-      start_period: 2s
+      start_period: 10s
       timeout: 3s
     volumes:
-      - ./database/init:/docker-entrypoint-initdb.d
-      - ./database/sh:/scripts
+      - ./database/init/init.sh:/docker-entrypoint-initdb.d/init.sh
+      - ./database/init/sql/01-auth.sql:/docker-entrypoint-initdb.d/sql/01-auth.sql
+      - ./database/init/sql/02-main.sql:/docker-entrypoint-initdb.d/sql/02-auth.sql
+      - ./database/sh/healthcheck.sh:/scripts/healthcheck.sh
     networks:
       booking:
         ipv4_address: 172.20.0.2
