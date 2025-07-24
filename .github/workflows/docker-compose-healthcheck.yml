@@ -25,6 +25,10 @@ jobs:
     - name: Start Docker Compose
       run: docker compose up -d
 
+    - name: Dead containers log output
+      run: |
+        docker-compose logs --tail=1000
+
     - name: Wait for healthcheck
       run: |
         timeout=180
