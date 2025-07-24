@@ -4,7 +4,7 @@ import dev.genken.backend.dto.AuthResponseDto;
 import dev.genken.backend.entity.Role;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -13,8 +13,6 @@ import dev.genken.backend.dto.UserRequestDto;
 import dev.genken.backend.dto.UserResponseDto;
 import dev.genken.backend.entity.User;
 import dev.genken.backend.repository.UserRepository;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -38,11 +36,7 @@ public class AuthService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Auth-Token", token);
         HttpEntity<UserRequestDto> request_params = new HttpEntity<>(request, headers);
-        UserResponseDto response = restTemplate.postForEntity(
-            authServiceUrl + "/register",
-            request_params,
-            UserResponseDto.class
-        ).getBody();
+        UserResponseDto response = restTemplate.postForEntity(authServiceUrl + "/register", request_params, UserResponseDto.class).getBody();
         // TODO: check for a server's response code
         try {
             saveUser(response.getUsername(), response.getUuid(), response.getRole());
