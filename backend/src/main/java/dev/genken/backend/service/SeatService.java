@@ -10,7 +10,6 @@ import java.util.Optional;
 
 @Service
 public class SeatService {
-
     private final SeatRepository seatRepository;
 
     @Autowired

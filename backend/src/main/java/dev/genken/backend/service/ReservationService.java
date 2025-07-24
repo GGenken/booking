@@ -8,10 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
 public class ReservationService {
+
     private final SeatService seatService;
     private final ReservationRepository reservationRepository;
 
@@ -27,5 +29,26 @@ public class ReservationService {
         Reservation reservation = new Reservation(seat, user, startTime, endTime);
 
         return reservationRepository.save(reservation);
+    }
+
+    public List<Reservation> getAllReservations() { return reservationRepository.findAll(); }
+
+    public Reservation getReservationById(Long id) {
+        return reservationRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("Reservation not found"));
+    }
+
+    public Reservation updateReservation(Long id, Reservation updatedReservation) {
+        if (!reservationRepository.existsById(id)) {
+            throw new NoSuchElementException("Reservation not found");
+        }
+
+        updatedReservation.setId(id);
+        return reservationRepository.save(updatedReservation);
+    }
+
+    public void deleteReservation(Long id) {
+        if (reservationRepository.existsById(id)) { reservationRepository.deleteById(id); }
+        throw new NoSuchElementException("Reservation not found");
     }
 }

@@ -39,7 +39,7 @@ public class AuthService {
         UserResponseDto response = restTemplate.postForEntity(authServiceUrl + "/register", request_params, UserResponseDto.class).getBody();
         // TODO: check for a server's response code
         try {
-            return saveUser(response.getUsername(), response.getUuid(), response.getRole());;
+            return saveUser(response.getUsername(), response.getUuid(), response.getRole());
         } catch (DataIntegrityViolationException e) {
             throw new IllegalStateException("User already exists");
         }

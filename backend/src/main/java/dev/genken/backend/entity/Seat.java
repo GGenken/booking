@@ -1,6 +1,11 @@
 package dev.genken.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonView;
+import dev.genken.backend.dto.Views;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+
 
 import java.util.List;
 
@@ -14,9 +19,11 @@ public class Seat {
     private Long id;
 
     @Column(nullable = false)
+    @Min(1)
     private int row;
 
     @Column(nullable = false)
+    @Min(1)
     private int col;
 
     @OneToMany(mappedBy = "seat", cascade = CascadeType.ALL, orphanRemoval = true)

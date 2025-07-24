@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -36,19 +37,11 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Login and obtain the JWT token")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Login successful, token generated",
-            headers = @Header(name = "Authorization", description = "Bearer token")),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "500", description = "Internal Server Error")
-    })
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "Login successful, token generated", headers = @Header(name = "Authorization", description = "Bearer token")), @ApiResponse(responseCode = "401", description = "Unauthorized"), @ApiResponse(responseCode = "500", description = "Internal Server Error")})
     public ResponseEntity<Void> login(@Valid @RequestBody UserRequestDto dto) {
         try {
             AuthResponseDto response = authService.login(dto);
-            return ResponseEntity
-                .ok()
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + response.getToken())
-                .build();
+            return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, "Bearer " + response.getToken()).build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } catch (IllegalStateException e) {
@@ -58,18 +51,12 @@ public class AuthController {
 
     @PostMapping("/users/")
     @Operation(summary = "Create a new user", security = @SecurityRequirement(name = "bearerAuth"))
-    @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "User created successfully"),
-        @ApiResponse(responseCode = "403", description = "Forbidden - administrator privileges required"),
-        @ApiResponse(responseCode = "500", description = "Internal Server Error")
-    })
-    public ResponseEntity<User> register(
-        @Valid @RequestBody UserRequestDto dto,
-        @Parameter(hidden = true) Authentication authentication) {
+    @ApiResponses({@ApiResponse(responseCode = "201", description = "User created successfully"), @ApiResponse(responseCode = "403", description = "Forbidden - administrator privileges required"), @ApiResponse(responseCode = "500", description = "Internal Server Error")})
+    public ResponseEntity<User> register(@Valid @RequestBody UserRequestDto dto, @Parameter(hidden = true) Authentication authentication) {
         try {
             String token = authentication.getCredentials().toString();
             User user = authService.register(dto, token);
-            return ResponseEntity.created(URI.create("/api/auth/users/" + user.getUuid().toString())).build();
+            return ResponseEntity.created(URI.create("/api/auth/users/" + user.getUuid().toString())).body(user);
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (IllegalStateException e) {
@@ -79,15 +66,8 @@ public class AuthController {
 
     @DeleteMapping("/users/{uuid}")
     @Operation(summary = "Delete a user", security = @SecurityRequirement(name = "bearerAuth"))
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "User deleted successfully"),
-        @ApiResponse(responseCode = "404", description = "User not found"),
-        @ApiResponse(responseCode = "403", description = "Forbidden - administrator privileges required"),
-        @ApiResponse(responseCode = "500", description = "Internal Server Error")
-    })
-    public ResponseEntity<Void> deleteUser(
-        @PathVariable UUID uuid,
-        @Parameter(hidden = true) Authentication authentication) {
+    @ApiResponses({@ApiResponse(responseCode = "204", description = "User deleted successfully"), @ApiResponse(responseCode = "404", description = "User not found"), @ApiResponse(responseCode = "403", description = "Forbidden - administrator privileges required"), @ApiResponse(responseCode = "500", description = "Internal Server Error")})
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID uuid, @Parameter(hidden = true) Authentication authentication) {
         try {
             String token = authentication.getCredentials().toString();
             authService.deleteUser(uuid, token);
@@ -103,11 +83,7 @@ public class AuthController {
 
     @GetMapping("/users")
     @Operation(summary = "Get all users", security = @SecurityRequirement(name = "bearerAuth"))
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved users"),
-        @ApiResponse(responseCode = "403", description = "Forbidden - admin privileges required"),
-        @ApiResponse(responseCode = "500", description = "Internal Server Error")
-    })
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "Successfully retrieved users"), @ApiResponse(responseCode = "403", description = "Forbidden - admin privileges required"), @ApiResponse(responseCode = "500", description = "Internal Server Error")})
     public ResponseEntity<List<User>> getUsers(@AuthenticationPrincipal User user) {
         if (user == null || user.getRole() != Role.ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
