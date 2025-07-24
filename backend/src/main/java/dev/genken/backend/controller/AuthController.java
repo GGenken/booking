@@ -11,12 +11,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 
+import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import dev.genken.backend.dto.AuthResponseDto;
-import dev.genken.backend.dto.UserResponseDto;
 import dev.genken.backend.service.AuthService;
 
 import org.springframework.http.HttpHeaders;
@@ -52,7 +52,7 @@ public class AuthController {
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -68,12 +68,12 @@ public class AuthController {
         @Parameter(hidden = true) Authentication authentication) {
         try {
             String token = authentication.getCredentials().toString();
-            authService.register(dto, token);
-            return ResponseEntity.status(HttpStatus.CREATED).build();
+            User user = authService.register(dto, token);
+            return ResponseEntity.created(URI.create("/api/auth/users/" + user.getUuid().toString())).build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -93,11 +93,11 @@ public class AuthController {
             authService.deleteUser(uuid, token);
             return ResponseEntity.noContent().build();
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.notFound().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -122,6 +122,6 @@ public class AuthController {
         if (user == null || user.getRole() == Role.GUEST) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        return ResponseEntity.ok(user);
     }
 }

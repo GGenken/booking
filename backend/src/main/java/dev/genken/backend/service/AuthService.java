@@ -32,14 +32,14 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
-    public void register(UserRequestDto request, String token) {
+    public User register(UserRequestDto request, String token) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Auth-Token", token);
         HttpEntity<UserRequestDto> request_params = new HttpEntity<>(request, headers);
         UserResponseDto response = restTemplate.postForEntity(authServiceUrl + "/register", request_params, UserResponseDto.class).getBody();
         // TODO: check for a server's response code
         try {
-            saveUser(response.getUsername(), response.getUuid(), response.getRole());;
+            return saveUser(response.getUsername(), response.getUuid(), response.getRole());;
         } catch (DataIntegrityViolationException e) {
             throw new IllegalStateException("User already exists");
         }
@@ -59,12 +59,13 @@ public class AuthService {
         }
     }
 
-    private void saveUser(String username, UUID uuid, Role role) {
+    private User saveUser(String username, UUID uuid, Role role) {
         User user = new User();
         user.setUsername(username);
         user.setUuid(uuid);
         user.setRole(role);
         userRepository.save(user);
+        return user;
     }
 
     private void saveOrUpdateUser(String username, UUID uuid, Role role) {
