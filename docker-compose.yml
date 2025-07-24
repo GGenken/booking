@@ -14,7 +14,7 @@ services:
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}  # set this in the .env!
     healthcheck:
-      test: [ "CMD-SHELL", "/scripts/healthcheck.sh" ]
+      test: [ "CMD-SHELL", "/healthcheck.sh" ]
       interval: 30s
       retries: 3
       start_period: 10s
@@ -23,7 +23,7 @@ services:
       - ./database/init/init.sh:/docker-entrypoint-initdb.d/init.sh
       - ./database/init/sql/01-auth.sql:/docker-entrypoint-initdb.d/sql/01-auth.sql
       - ./database/init/sql/02-main.sql:/docker-entrypoint-initdb.d/sql/02-auth.sql
-      - ./database/sh/healthcheck.sh:/scripts/healthcheck.sh
+      - ./database/healthcheck.sh:/healthcheck.sh
     networks:
       booking:
         ipv4_address: 172.20.0.2
