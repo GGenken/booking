@@ -11,4 +11,9 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     @Transactional
     @Query("DELETE FROM Seat s WHERE s.row > :maxRow OR s.col > :maxCol")
     void deleteExcessiveSeats(int maxRow, int maxCol);
+
+    @Modifying
+    @Transactional
+    @Query(value = "INSERT INTO seats (row, col) VALUES (?1, ?2) ON CONFLICT (row, col) DO NOTHING", nativeQuery = true)
+    void insertSeatIfNotExists(int row, int col);
 }

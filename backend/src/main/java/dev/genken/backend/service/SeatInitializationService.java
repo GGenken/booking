@@ -1,10 +1,8 @@
 package dev.genken.backend.service;
 
-import dev.genken.backend.entity.Seat;
 import dev.genken.backend.repository.SeatRepository;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,15 +24,7 @@ public class SeatInitializationService implements InitializingBean {
         seatRepository.deleteExcessiveSeats(numRows, numCols);
         for (int row = 1; row <= numRows; ++row) {
             for (int col = 1; col <= numCols; ++col) {
-                Seat seat = new Seat();
-                seat.setRow(row);
-                seat.setCol(col);
-
-                try {
-                    seatRepository.save(seat);
-                } catch (DataIntegrityViolationException e) {
-                    System.out.println("Skipping duplicate seat " + row + ":" + col);
-                }
+                seatRepository.insertSeatIfNotExists(row, col);
             }
         }
 
