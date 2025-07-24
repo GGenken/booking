@@ -5,20 +5,19 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "reservations")
 public class Reservation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "seat_id", nullable = false)
+    private Seat seat;
+
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @Column(nullable = false)
-    private int seatRow;
-
-    @Column(nullable = false)
-    private int seatColumn;
 
     @Column(nullable = false)
     private LocalDateTime startTime;
@@ -26,21 +25,30 @@ public class Reservation {
     @Column(nullable = false)
     private LocalDateTime endTime;
 
+    public Reservation() {}
+
+    public Reservation(Seat seat, User user, LocalDateTime startTime, LocalDateTime endTime) {
+        setSeat(seat);
+        setUser(user);
+        setStartTime(startTime);
+        setEndTime(endTime);
+    }
+
     public Long getId() { return id; }
 
     public void setId(Long id) { this.id = id; }
+
+    public Seat getSeat() { return seat; }
+
+    public void setSeat(Seat seat) { this.seat = seat; }
 
     public User getUser() { return user; }
 
     public void setUser(User user) { this.user = user; }
 
-    public int getSeatRow() { return seatRow; }
+    public int getSeatRow() { return seat.getRow(); }
 
-    public void setSeatRow(int row) { this.seatRow = row; }
-
-    public int getSeatColumn() { return seatColumn; }
-
-    public void setSeatColumn(int column) { this.seatColumn = column; }
+    public int getSeatCol() { return seat.getCol(); }
 
     public LocalDateTime getStartTime() { return startTime; }
 
