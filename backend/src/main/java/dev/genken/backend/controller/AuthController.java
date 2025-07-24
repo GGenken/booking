@@ -13,20 +13,18 @@ import dev.genken.backend.service.AuthService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-
     private final AuthService authService;
-
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
@@ -47,8 +45,9 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDto> register(@Valid @RequestBody UserRequestDto dto, @RequestHeader("X-Auth-Token") String token) {
+    public ResponseEntity<UserResponseDto> register(@Valid @RequestBody UserRequestDto dto, Authentication authentication) {
         try {
+            String token = authentication.getCredentials().toString();
             UserResponseDto user = authService.register(dto, token);
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
         } catch (SecurityException e) {
@@ -59,8 +58,9 @@ public class AuthController {
     }
 
     @DeleteMapping("/users/{uuid}")
-    public ResponseEntity<?> deleteUser(@PathVariable UUID uuid, @RequestHeader("X-Auth-Token") String token) {
+    public ResponseEntity<?> deleteUser(@PathVariable UUID uuid, Authentication authentication) {
         try {
+            String token = authentication.getCredentials().toString();
             authService.deleteUser(uuid, token);
             return ResponseEntity.noContent().build();
         } catch (NoSuchElementException e) {
