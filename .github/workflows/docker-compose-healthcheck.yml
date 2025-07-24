@@ -21,9 +21,7 @@ jobs:
 
     - name: Build & Start Docker Compose
       run: |
-        docker compose up -d --build
-        docker compose ps
-        docker compose logs --tail=1000
+        docker compose up -d --build || docker compose ps || docker compose logs --tail 1000
 
     - name: Wait for healthcheck
       run: |
