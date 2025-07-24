@@ -63,13 +63,13 @@ public class AuthController {
         @ApiResponse(responseCode = "403", description = "Forbidden - administrator privileges required"),
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
-    public ResponseEntity<UserResponseDto> register(
+    public ResponseEntity<User> register(
         @Valid @RequestBody UserRequestDto dto,
         @Parameter(hidden = true) Authentication authentication) {
         try {
             String token = authentication.getCredentials().toString();
-            UserResponseDto user = authService.register(dto, token);
-            return ResponseEntity.status(HttpStatus.CREATED).body(user);
+            authService.register(dto, token);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (IllegalStateException e) {
