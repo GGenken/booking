@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import java.net.URI;
@@ -27,6 +28,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "Authentication")
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
@@ -49,7 +51,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/users/")
+    @PostMapping("/users")
     @Operation(summary = "Create a new user", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({@ApiResponse(responseCode = "201", description = "User created successfully"), @ApiResponse(responseCode = "403", description = "Forbidden - administrator privileges required"), @ApiResponse(responseCode = "500", description = "Internal Server Error")})
     public ResponseEntity<User> register(@Valid @RequestBody UserRequestDto dto, @Parameter(hidden = true) Authentication authentication) {
