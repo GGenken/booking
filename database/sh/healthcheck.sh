@@ -29,7 +29,7 @@ psql -v ON_ERROR_STOP=1 --username "$MAIN_DB_USER" --dbname "$MAIN_DB" <<-EOSQL
     INSERT INTO users (username, role, uuid)
     VALUES (
       '$ADMIN_USERNAME',
-      'admin',
+      'ADMIN',
       '$NEW_ADMIN_UUID'
     )
     ON CONFLICT (username) DO NOTHING;
