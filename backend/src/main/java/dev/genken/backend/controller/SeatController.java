@@ -9,6 +9,8 @@ import dev.genken.backend.service.ReservationService;
 import dev.genken.backend.service.SeatService;
 import dev.genken.backend.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +22,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,12 +62,23 @@ public class SeatController {
                 objectMapper.registerModule(module);
             }
             String response = objectMapper.writeValueAsString(reservations);
-            return ResponseEntity
-                .ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(response);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @GetMapping("/available")
+    @Operation(summary = "Get all available seats for a specific time", description = "Fetch all seats that are available within the specified time range. The response contains seat IDs for the available seats.")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Successfully fetched the available seats", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "array", implementation = Long.class))), @ApiResponse(responseCode = "400", description = "Invalid input, check time format"), @ApiResponse(responseCode = "401", description = "Unauthorized")})
+    public ResponseEntity<long[]> getAvailableSeats(@RequestParam LocalDateTime startTime, @RequestParam LocalDateTime endTime, @AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        List<Seat> availableSeats = seatService.getAvailableSeats(startTime, endTime);
+
+        long[] availableSeatIds = availableSeats.stream().mapToLong(Seat::getId).toArray();
+
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(availableSeatIds);
     }
 }
