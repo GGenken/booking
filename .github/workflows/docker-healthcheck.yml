@@ -20,7 +20,7 @@ jobs:
 
     - name: Build & Start Docker Compose
       run: |
-        docker compose up -d || docker inspect --format '{{json .State.Health}}' booking-database-1
+        chmod -R +x ./database/*.sh  && docker compose up -d || docker inspect --format '{{json .State.Health}}' booking-database-1
 
     - name: Wait for healthcheck
       run: |
