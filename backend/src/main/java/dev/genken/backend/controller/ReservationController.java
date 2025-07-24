@@ -54,6 +54,21 @@ public class ReservationController {
         return ResponseEntity.ok(reservations);
     }
 
+    @GetMapping("/my")
+    @Operation(
+        summary = "Get reservations for the authenticated user",
+        description = "Fetches all reservations for the currently authenticated user"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved the reservations"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    public ResponseEntity<List<Reservation>> getMyReservations(@AuthenticationPrincipal User user) {
+        if (user == null) { return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); }
+        List<Reservation> reservations = reservationService.getReservationsByUser(user);
+        return ResponseEntity.ok(reservations);
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get reservation by ID", description = "Fetch a reservation by its ID (available to administrators and owner)")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Reservation fetched successfully"), @ApiResponse(responseCode = "404", description = "Reservation not found"), @ApiResponse(responseCode = "403", description = "Forbidden - available to administrators and owner")})
