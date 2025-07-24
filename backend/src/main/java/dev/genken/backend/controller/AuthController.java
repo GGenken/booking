@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -41,7 +42,7 @@ public class AuthController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
-    public ResponseEntity<?> login(@Valid @RequestBody UserRequestDto dto) {
+    public ResponseEntity<Void> login(@Valid @RequestBody UserRequestDto dto) {
         try {
             AuthResponseDto response = authService.login(dto);
             return ResponseEntity
@@ -49,9 +50,9 @@ public class AuthController {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + response.getToken())
                 .build();
         } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -84,7 +85,7 @@ public class AuthController {
         @ApiResponse(responseCode = "403", description = "Forbidden - administrator privileges required"),
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
-    public ResponseEntity<?> deleteUser(
+    public ResponseEntity<Void> deleteUser(
         @PathVariable UUID uuid,
         @Parameter(hidden = true) Authentication authentication) {
         try {
@@ -107,7 +108,7 @@ public class AuthController {
         @ApiResponse(responseCode = "403", description = "Forbidden - admin privileges required"),
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
-    public ResponseEntity<?> getUsers(@AuthenticationPrincipal User user) {
+    public ResponseEntity<List<User>> getUsers(@AuthenticationPrincipal User user) {
         if (user == null || user.getRole() != Role.ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
