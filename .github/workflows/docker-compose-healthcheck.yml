@@ -1,0 +1,46 @@
+name: Build Check
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - '**/README*'
+      - '**/LICENSE*'
+      - '**/.gitignore'
+      - '.idea/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Build Docker Compose
+      run: docker compose build --no-cache
+
+    - name: Start Docker Compose
+      run: docker-compose up -d
+
+    - name: Wait for healthcheck
+      run: |
+        timeout=180
+        for service in $(docker-compose ps -q); do
+          elapsed=0
+          while [[ $(docker inspect --format '{{.State.Health.Status}}' $service) != "healthy" && $elapsed -lt $timeout ]]; do
+            echo "Running, elapsed: $elapsed seconds)"
+            sleep 5
+            ((elapsed+=5))
+          done
+          if [[ $elapsed -ge $timeout ]]; then
+            echo "Timeout reached for $service. It is not healthy."
+            exit 1
+          fi
+        done
+        echo "All services' healthchecks had passed"
+
+    - name: Shut down
+      run: docker-compose down
