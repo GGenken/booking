@@ -1,5 +1,7 @@
 package dev.genken.backend.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dev.genken.backend.serialization.ReservationSerializer;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -22,6 +24,7 @@ public class User {
     private Role role = Role.USER;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonSerialize(contentUsing = ReservationSerializer.class)
     private List<Reservation> reservations;
 
     public Long getId() { return id; }

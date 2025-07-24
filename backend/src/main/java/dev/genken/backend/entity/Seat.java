@@ -1,8 +1,7 @@
 package dev.genken.backend.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonView;
-import dev.genken.backend.dto.Views;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dev.genken.backend.serialization.SeatSerializer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 
@@ -27,6 +26,7 @@ public class Seat {
     private int col;
 
     @OneToMany(mappedBy = "seat", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonSerialize(using = SeatSerializer.class)
     private List<Reservation> reservations;
 
     public Long getId() { return id; }
