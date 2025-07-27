@@ -2,6 +2,7 @@ package dev.genken.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import dev.genken.backend.dto.CoworkingLayoutDto;
 import dev.genken.backend.dto.SeatCoordinateDto;
 import dev.genken.backend.dto.TimeRangeDto;
 import dev.genken.backend.entity.Reservation;
@@ -17,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -96,5 +98,16 @@ public class SeatController {
         List<SeatCoordinateDto> availableSeatsDto = availableSeats.stream().map(SeatCoordinateDto::new).toList();
 
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(availableSeatsDto);
+    }
+
+    @GetMapping("/layout")
+    @Operation(
+        summary = "Get layout of the coworking space"
+    )
+    public ResponseEntity<CoworkingLayoutDto> getCoworkingLayout(
+        @Value("${seat.rows}") int rows,
+        @Value("${seat.columns}") int cols
+    ) {
+        return ResponseEntity.ok(new CoworkingLayoutDto(rows, cols));
     }
 }
