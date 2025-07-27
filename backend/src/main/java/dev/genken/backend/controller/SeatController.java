@@ -1,11 +1,13 @@
 package dev.genken.backend.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import dev.genken.backend.dto.SeatCoordinateDto;
+import dev.genken.backend.dto.TimeRangeDto;
 import dev.genken.backend.entity.Reservation;
 import dev.genken.backend.entity.Role;
 import dev.genken.backend.entity.Seat;
 import dev.genken.backend.serialization.AnonymousReservationSerializer;
-import dev.genken.backend.service.ReservationService;
 import dev.genken.backend.service.SeatService;
 import dev.genken.backend.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,7 +17,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,61 +25,76 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @Tag(name = "Seats")
 @RequestMapping("/api/seats")
 public class SeatController {
     private final SeatService seatService;
-    private final ReservationService reservationService;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public SeatController(SeatService seatService, ReservationService reservationService, ObjectMapper objectMapper) {
+    public SeatController(SeatService seatService, ObjectMapper objectMapper) {
         this.seatService = seatService;
-        this.reservationService = reservationService;
         this.objectMapper = objectMapper;
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get all reservations for a seat", description = "Get a list of all reservations for a specific seat")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Successfully fetched the reservations; the response will be anonymized if the user is not an administrator"), @ApiResponse(responseCode = "404", description = "Seat was not found")})
-    public ResponseEntity<String> getReservationsBySeat(@PathVariable Long id, @AuthenticationPrincipal User user) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    @Operation(
+        summary = "Get all reservations for a seat",
+        description = "Get a list of all reservations for a specific seat"
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = """
+                Successfully fetched the reservations;
+                the response will be anonymized if the user is not an administrator
+            """),
+        @ApiResponse(responseCode = "404", description = "Seat was not found")
+    })
+    public ResponseEntity<String> getReservationsBySeat(@PathVariable Long id, @AuthenticationPrincipal User user)
+        throws JsonProcessingException {
+        Seat seat = seatService.getSeatById(id);
+        List<Reservation> reservations = seat.getReservations();
 
-        Optional<Seat> seat = seatService.getSeatById(id);
-        if (seat.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (user.getRole() != Role.ADMIN) {
+            SimpleModule module = new SimpleModule();
+            module.addSerializer(Reservation.class, new AnonymousReservationSerializer());
+            objectMapper.registerModule(module);
         }
-
-        List<Reservation> reservations = reservationService.getReservationsBySeat(seat.get());
-        try {
-            if (user.getRole() != Role.ADMIN) {
-                SimpleModule module = new SimpleModule();
-                module.addSerializer(Reservation.class, new AnonymousReservationSerializer());
-                objectMapper.registerModule(module);
-            }
-            String response = objectMapper.writeValueAsString(reservations);
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(response);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        String response = objectMapper.writeValueAsString(reservations);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(response);
     }
 
     @GetMapping("/available")
-    @Operation(summary = "Get all available seats for a specific time", description = "Fetch all seats that are available within the specified time range. The response contains seat IDs for the available seats.")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Successfully fetched the available seats", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "array", implementation = Long.class))), @ApiResponse(responseCode = "400", description = "Invalid input, check time format"), @ApiResponse(responseCode = "401", description = "Unauthorized")})
-    public ResponseEntity<long[]> getAvailableSeats(@RequestParam LocalDateTime startTime, @RequestParam LocalDateTime endTime, @AuthenticationPrincipal User user) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    @Operation(
+        summary = "Get all available seats for a specific time",
+        description = """
+            Fetch all seats that are available within the specified time range;
+            the response contains seat IDs for the available seats
+        """
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successfully fetched the available seats",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(type = "array", implementation = Long.class)
+            )
+        ),
+        @ApiResponse(responseCode = "400", description = "Invalid input, check time format"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    public ResponseEntity<List<SeatCoordinateDto>> getAvailableSeats(@RequestParam(required = false) TimeRangeDto timeRange) {
+        if  (timeRange == null) {
+            var currentTime = LocalDateTime.now();
+            timeRange = new TimeRangeDto(currentTime, currentTime);
         }
-        List<Seat> availableSeats = seatService.getAvailableSeats(startTime, endTime);
+        List<Seat> availableSeats = seatService.getAvailableSeats(timeRange.getStartTime(), timeRange.getEndTime());
+        List<SeatCoordinateDto> availableSeatsDto = availableSeats.stream().map(SeatCoordinateDto::new).toList();
 
-        long[] availableSeatIds = availableSeats.stream().mapToLong(Seat::getId).toArray();
-
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(availableSeatIds);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(availableSeatsDto);
     }
 }
