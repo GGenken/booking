@@ -39,7 +39,7 @@ func InitializeRouter(db *gorm.DB) *http.ServeMux {
 	router.Handle(
 		"/users/{uuid}",
 		middleware.Apply(
-			RegisterHandler(),
+			DeleteUserHandler(),
 			middleware.Method(http.MethodDelete),
 			middleware.WithDB(db),
 			middleware.WithAdminPermissions(),

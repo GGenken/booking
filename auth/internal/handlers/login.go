@@ -16,12 +16,12 @@ func LoginHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var userDTO dto.InputUserDTO
 		if err := json.NewDecoder(r.Body).Decode(&userDTO); err != nil {
-			http.Error(w, "Invalid input", http.StatusBadRequest)
+			helpers.SendErrorResponse(w, http.StatusBadRequest, "Invalid input")
 			return
 		}
 
 		if err := userDTO.Validate(); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			helpers.SendErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -30,15 +30,15 @@ func LoginHandler() http.HandlerFunc {
 
 		if err := db.Where("username = ?", userDTO.Username).First(&user).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+				helpers.SendErrorResponse(w, http.StatusNotFound, "User not found")
 				return
 			}
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			helpers.SendErrorResponse(w, http.StatusInternalServerError, "Internal server error")
 			return
 		}
 
 		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(userDTO.Password)); err != nil {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+			helpers.SendErrorResponse(w, http.StatusUnauthorized, "Invalid credentials")
 			return
 		}
 
@@ -50,7 +50,7 @@ func LoginHandler() http.HandlerFunc {
 
 		token, err := helpers.CreateJWT(user.UUID, user.Username, user.Role)
 		if err != nil {
-			http.Error(w, "Error generating JWT", http.StatusInternalServerError)
+			helpers.SendErrorResponse(w, http.StatusInternalServerError, "Internal server error")
 			return
 		}
 
@@ -60,6 +60,10 @@ func LoginHandler() http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
+		err = json.NewEncoder(w).Encode(response)
+		if err != nil {
+			helpers.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 	}
 }

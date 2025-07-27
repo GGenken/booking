@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"auth/internal/helpers"
+	"auth/internal/middleware"
 	"auth/internal/models"
-	"gorm.io/gorm"
 	"net/http"
 	"strings"
 )
 
-func DeleteUserHandler(db *gorm.DB) http.HandlerFunc {
+func DeleteUserHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 		if len(parts) != 2 || parts[0] != "users" {
@@ -17,6 +17,7 @@ func DeleteUserHandler(db *gorm.DB) http.HandlerFunc {
 		}
 		uuid := parts[1]
 
+		db := middleware.GetDB(r)
 		if result := db.Where("uuid = ?", uuid).Delete(&models.User{}); result.RowsAffected == 0 {
 			http.Error(w, "user not found", http.StatusNotFound)
 			return
