@@ -27,6 +27,14 @@ public class User {
     @JsonSerialize(contentUsing = ReservationSerializer.class)
     private List<Reservation> reservations;
 
+    public User() {}
+
+    public User(String username, UUID uuid, Role role) {
+        setUsername(username);
+        setUuid(uuid);
+        setRole(role);
+    }
+
     public Long getId() { return id; }
 
     public void setId(Long id) { this.id = id; }
