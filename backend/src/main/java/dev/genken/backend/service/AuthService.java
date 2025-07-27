@@ -1,10 +1,13 @@
 package dev.genken.backend.service;
 
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.jwt.proc.ExpiredJWTException;
 import dev.genken.backend.dto.AuthResponseDto;
 import dev.genken.backend.entity.Role;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
+import dev.genken.backend.exception.AuthServiceException;
 import org.springframework.http.*;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -14,58 +17,50 @@ import dev.genken.backend.dto.UserResponseDto;
 import dev.genken.backend.entity.User;
 import dev.genken.backend.repository.UserRepository;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.UUID;
+import java.text.ParseException;
+import java.util.*;
 
 @Service
 public class AuthService {
     private final RestTemplate restTemplate;
     private final UserRepository userRepository;
 
-    @Value("${auth.service.url}")
-    private String authServiceUrl;
-
-    public AuthService(RestTemplate restTemplate, UserRepository userRepository) {
-        this.restTemplate = restTemplate;
+    public AuthService(RestTemplate authRestTemplate, UserRepository userRepository) {
+        this.restTemplate = authRestTemplate;
         this.userRepository = userRepository;
     }
 
     public User register(UserRequestDto request, String token) {
-        HttpHeaders headers = new HttpHeaders();
+        var headers = new HttpHeaders();
         headers.set("X-Auth-Token", token);
-        HttpEntity<UserRequestDto> request_params = new HttpEntity<>(request, headers);
-        UserResponseDto response = restTemplate.postForEntity(authServiceUrl + "/register", request_params, UserResponseDto.class).getBody();
-        // TODO: check for a server's response code
-        try {
-            return saveUser(response.getUsername(), response.getUuid(), response.getRole());
-        } catch (DataIntegrityViolationException e) {
-            throw new IllegalStateException("User already exists");
-        }
-    }
+        HttpEntity<UserRequestDto> restRequest = new HttpEntity<>(request, headers);
 
-    public AuthResponseDto login(UserRequestDto request) {
-        String url = authServiceUrl + "/login";
         try {
-            AuthResponseDto response = restTemplate.postForObject(url, request, AuthResponseDto.class);
-            UserResponseDto user_parsed = response.getUser();
-            saveOrUpdateUser(user_parsed.getUsername(), user_parsed.getUuid(), user_parsed.getRole());
-            return response;
-        } catch (HttpClientErrorException.Unauthorized e) {
-            throw new SecurityException("Invalid credentials");
+            UserResponseDto response = restTemplate.postForEntity("/register", restRequest, UserResponseDto.class).getBody();
+            return saveUser(response);
         } catch (HttpStatusCodeException e) {
-            throw new IllegalStateException("Auth service error");
+            throw AuthServiceException.fromHttpException(e);
         }
     }
 
     private User saveUser(String username, UUID uuid, Role role) {
-        User user = new User();
-        user.setUsername(username);
-        user.setUuid(uuid);
-        user.setRole(role);
+        User user = new User(username, uuid, role);
         userRepository.save(user);
         return user;
+    }
+
+    private User saveUser(UserResponseDto response) {
+        return saveUser(response.getUsername(), response.getUuid(), response.getRole());
+    }
+
+    public AuthResponseDto login(UserRequestDto request) {
+        try {
+            AuthResponseDto response = restTemplate.postForObject("/login", request, AuthResponseDto.class);
+            saveOrUpdateUser(response);
+            return response;
+        } catch (HttpClientErrorException e) {
+            throw AuthServiceException.fromHttpException(e);
+        }
     }
 
     private void saveOrUpdateUser(String username, UUID uuid, Role role) {
@@ -79,21 +74,62 @@ public class AuthService {
         userRepository.save(user);
     }
 
+    private void saveOrUpdateUser(AuthResponseDto response) {
+        saveOrUpdateUser(response.getUser());
+    }
+
+    private void saveOrUpdateUser(UserResponseDto response) {
+        saveOrUpdateUser(response.getUsername(), response.getUuid(), response.getRole());
+    }
+
     public void deleteUser(UUID uuid, String token) {
-        String url = authServiceUrl + "/users/" + uuid;
-        HttpHeaders headers = new HttpHeaders();
+        var headers = new HttpHeaders();
         headers.set("X-Auth-Token", token);
-        HttpEntity<Void> request = new HttpEntity<>(headers);
+        var restRequest = new HttpEntity<>(headers);
         try {
-            restTemplate.exchange(url, HttpMethod.DELETE, request, Void.class);
-            Optional<User> userToDelete = userRepository.findByUuid(UUID.fromString(uuid.toString()));
+            restTemplate.exchange("/users/" + uuid, HttpMethod.DELETE, restRequest, Void.class);
+            Optional<User> userToDelete = userRepository.findByUuid(uuid);
             userToDelete.ifPresent(userRepository::delete);
-        } catch (HttpClientErrorException.NotFound e) {
-            throw new NoSuchElementException("User not found in auth service");
-        } catch (HttpStatusCodeException e) {
-            throw new IllegalStateException("Auth service error: " + e.getMessage());
+        } catch (HttpClientErrorException e) {
+            throw AuthServiceException.fromHttpException(e);
         }
     }
 
     public List<User> getAllUsers() { return userRepository.findAll(); }
+
+    public Map<String, Object> getClaimsFromJwt(String token) {
+        var headers = new HttpHeaders();
+        headers.set("X-Auth-Token", token);
+        var restRequest = new HttpEntity<>(headers);
+
+        try {
+            SignedJWT jwt = SignedJWT.parse(token);
+            JWTClaimsSet claimsSet = jwt.getJWTClaimsSet();
+
+            Date expirationDate = claimsSet.getExpirationTime();
+            if (expirationDate != null && expirationDate.before(new Date())) {
+                throw new ExpiredJWTException("JWT token has expired");
+            }
+
+            Map<String, Object> claims = claimsSet.getClaims();
+
+            restTemplate.postForEntity(
+                "/verify-jwt",
+                restRequest,
+                Void.class
+            );
+
+            return claims;
+        } catch (ParseException e) {
+            throw new BadCredentialsException("Unparseable token", e);
+        } catch (HttpStatusCodeException e) {
+            throw AuthServiceException.fromHttpException(e);
+        } catch (ExpiredJWTException e) {
+            throw new BadCredentialsException("JWT token has expired", e);
+        }
+    }
+
+    public User findByUuid(UUID uuid) {
+        return userRepository.findByUuid(uuid).orElseThrow(() -> new NoSuchElementException("User not found with UUID: " + uuid));
+    }
 }
