@@ -65,6 +65,7 @@ services:
       DB_PASS: ${MAIN_DB_PASS:-main_pass}
       AUTH_HOST: auth
       AUTH_PORT: 8080
+      ORIGIN: ${ORIGIN:-http://localhost}
       COWORKING_ROWS: ${COWORKING_ROWS:-2}
       COWORKING_COLS: ${COWORKING_ROWS:-3}
     ports:
