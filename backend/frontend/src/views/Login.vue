@@ -11,7 +11,7 @@
               v-model="username"
               placeholder="Username"
               class="w-full px-3 py-2 border rounded focus:outline-none"
-              @blur="$v.username.$touch(); console.log($v.username)"
+              @blur="$v.username.$touch()"
               :class="{ 'border-red-500': $v.username.$error }"
           />
           <p v-if="$v.username.$error" class="text-red-500 text-sm mt-1">
@@ -25,7 +25,7 @@
               type="password"
               placeholder="Password"
               class="w-full px-3 py-2 border rounded focus:outline-none"
-              @blur="$v.password.$touch(); console.log($v.password.$error)"
+              @blur="$v.password.$touch()"
               :class="{ 'border-red-500': $v.password.$error }"
           />
           <p v-if="$v.password.$error" class="text-red-500 text-sm mt-1">
@@ -49,7 +49,11 @@
 import {ref} from 'vue'
 import useVuelidate from '@vuelidate/core'
 import {required, minLength, maxLength, alphaNum, helpers} from '@vuelidate/validators'
-import api from '@/services/api.js';
+import {useRouter} from 'vue-router';
+import {useUserStore} from '@/stores/user.js';
+
+const router = useRouter();
+const user = useUserStore();
 
 const username = ref('')
 const password = ref('')
@@ -80,18 +84,14 @@ const rules = {
 const $v = useVuelidate(rules, {username, password})
 
 async function submit() {
-  console.log($v);
   $v.value.$touch();
   if ($v.value.$invalid) return;
-
-  const response = await api.post("/auth/login", {
-    username: username.value,
-    password: password.value
-  });
-
-  const authHeader = response.headers['authorization'] || response.headers['Authorization'];
-  const token = authHeader.replace("Bearer ", "");
-  localStorage.setItem('authToken', token);
+  try {
+    await user.login(username.value, password.value);
+    await router.push('/dashboard');
+  } catch (e) {
+    console.error("Login failed:", e);
+  }
 }
 </script>
 
