@@ -25,11 +25,11 @@ public class ReservationService {
     }
 
     public Reservation createReservation(Long seatId, User user, LocalDateTime startTime, LocalDateTime endTime) {
-        if (LocalDateTime.now().isAfter(endTime)) {
+        if (endTime.isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Reservation's end must not be before current time");
         }
-        if (startTime.isBefore(endTime)) {
-            throw new IllegalArgumentException("Reservations's start must not be before current time");
+        if (endTime.isBefore(startTime)) {
+            throw new IllegalArgumentException("Reservations's end time must not be before start time");
         }
         Seat seat = seatService.getSeatById(seatId);
         long durationMinutes = between(startTime, endTime).toMinutes();
