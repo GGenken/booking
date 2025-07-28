@@ -5,6 +5,7 @@ import dev.genken.backend.entity.Seat;
 import dev.genken.backend.repository.ReservationRepository;
 import dev.genken.backend.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -40,7 +41,11 @@ public class ReservationService {
         }
 
         Reservation reservation = new Reservation(seat, user, startTime, endTime);
-        return reservationRepository.save(reservation);
+        try {
+            return reservationRepository.save(reservation);
+        } catch (DataIntegrityViolationException e) {
+            throw new DataIntegrityViolationException("The reservation overlaps with another reservation");
+        }
     }
 
     public List<Reservation> getAllReservations() { return reservationRepository.findAll(); }
@@ -59,7 +64,11 @@ public class ReservationService {
             throw new NoSuchElementException("Reservation not found");
         }
         updatedReservation.setId(id);
-        return reservationRepository.save(updatedReservation);
+        try {
+            return reservationRepository.save(updatedReservation);
+        } catch (DataIntegrityViolationException e) {
+            throw new DataIntegrityViolationException("The reservation overlaps with another reservation");
+        }
     }
 
     public void deleteReservation(Long id) {
