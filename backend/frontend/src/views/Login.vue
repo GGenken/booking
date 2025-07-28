@@ -49,6 +49,7 @@
 import {ref} from 'vue'
 import useVuelidate from '@vuelidate/core'
 import {required, minLength, maxLength, alphaNum, helpers} from '@vuelidate/validators'
+import api from '@/services/api.js';
 
 const username = ref('')
 const password = ref('')
@@ -78,11 +79,19 @@ const rules = {
 
 const $v = useVuelidate(rules, {username, password})
 
-function submit() {
+async function submit() {
   console.log($v);
-  $v.value.$touch()
-  if ($v.value.$invalid) return
-  console.log('Send:', username.value, password.value)
+  $v.value.$touch();
+  if ($v.value.$invalid) return;
+
+  const response = await api.post("/auth/login", {
+    username: username.value,
+    password: password.value
+  });
+
+  const authHeader = response.headers['authorization'] || response.headers['Authorization'];
+  const token = authHeader.replace("Bearer ", "");
+  localStorage.setItem('authToken', token);
 }
 </script>
 
