@@ -12,6 +12,7 @@ import dev.genken.backend.serialization.AnonymousReservationSerializer;
 import dev.genken.backend.service.SeatService;
 import dev.genken.backend.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -104,10 +106,14 @@ public class SeatController {
     @Operation(
         summary = "Get layout of the coworking space"
     )
-    public ResponseEntity<CoworkingLayoutDto> getCoworkingLayout(
-        @Value("${seat.rows}") int rows,
-        @Value("${seat.columns}") int cols
-    ) {
-        return ResponseEntity.ok(new CoworkingLayoutDto(rows, cols));
+    public ResponseEntity<List<SeatCoordinateDto>> getCoworkingLayout() {
+        List<Seat> allSeats = seatService.getAllSeats();
+        List<SeatCoordinateDto> seatCoordinates = new ArrayList<>();
+
+        for (Seat seat : allSeats) {
+            seatCoordinates.add(new SeatCoordinateDto(seat));
+        }
+
+        return ResponseEntity.ok(seatCoordinates);
     }
 }

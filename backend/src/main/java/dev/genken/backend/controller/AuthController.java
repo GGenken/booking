@@ -22,7 +22,6 @@ import dev.genken.backend.dto.AuthResponseDto;
 import dev.genken.backend.service.AuthService;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
