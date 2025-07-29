@@ -21,8 +21,9 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
+                var origins = origin.split("\\s*,\\s*");
                 registry.addMapping("/**")
-                    .allowedOrigins(origin)
+                    .allowedOrigins(origins)
                     .allowedMethods("GET", "POST", "PUT", "DELETE")
                     .allowedHeaders("*")
                     .exposedHeaders("Authorization");
