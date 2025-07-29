@@ -1,0 +1,19 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Auth" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="booking" />
+    <working_directory value="$PROJECT_DIR$/auth" />
+    <envs>
+      <env name="DB_HOST" value="localhost" />
+      <env name="DB_NAME" value="auth" />
+      <env name="DB_PASS" value="auth_pass" />
+      <env name="DB_PORT" value="5432" />
+      <env name="DB_USER" value="auth" />
+      <env name="JWT_SECRET" value="supersecretstring" />
+    </envs>
+    <kind value="DIRECTORY" />
+    <package value="auth" />
+    <directory value="$PROJECT_DIR$/auth" />
+    <filePath value="$PROJECT_DIR$" />
+    <method v="2" />
+  </configuration>
+</component>

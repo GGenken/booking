@@ -1,0 +1,22 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="BackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <envs>
+      <env name="AUTH_HOST" value="localhost" />
+      <env name="AUTH_PORT" value="8080" />
+      <env name="COWORKING_COLS" value="3" />
+      <env name="COWORKING_ROWS" value="2" />
+      <env name="DB_HOST" value="localhost" />
+      <env name="DB_NAME" value="main" />
+      <env name="DB_PASS" value="main_pass" />
+      <env name="DB_PORT" value="5432" />
+      <env name="DB_USER" value="main" />
+      <env name="ORIGIN" value="http://localhost,http://localhost:5173,http://home.genken.dev,https://home.genken.dev" />
+    </envs>
+    <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+    <module name="backend" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="dev.genken.backend.BackendApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
