@@ -39,6 +39,7 @@ services:
       DB_NAME: ${AUTH_DB:-auth}
       DB_USER: ${AUTH_DB_USER:-auth}
       DB_PASS: ${AUTH_DB_PASS:-auth_pass}
+      JWT_SECRET: ${JWT_SECRET}
     healthcheck:
       test: [ "CMD", "wget", "--spider", "http://localhost:8080/ping" ]
       interval: 10s
