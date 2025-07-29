@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
@@ -115,6 +116,9 @@ public class GlobalExceptionHandler {
 
         if (e instanceof IllegalArgumentException) {
             return unexpectedExceptionHandler.handleIllegalArgumentException((IllegalArgumentException) e, r);
+        }
+        if (e instanceof NoResourceFoundException) {
+            return unexpectedExceptionHandler.handleNoResourceFoundException((NoResourceFoundException) e, r);
         }
 
         return unexpectedExceptionHandler.handleUnexpectedError(e, r);

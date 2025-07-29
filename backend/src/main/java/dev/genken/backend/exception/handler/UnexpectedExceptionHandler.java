@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class UnexpectedExceptionHandler {
@@ -31,5 +32,16 @@ public class UnexpectedExceptionHandler {
             r.getRequestURI()
         );
         return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ProblemDetailsDto> handleNoResourceFoundException(NoResourceFoundException e, HttpServletRequest r) {
+        var problem = new ProblemDetailsDto(
+            "Not found",
+            HttpStatus.NOT_FOUND.value(),
+            e.getMessage() != null ? e.getMessage() : "No resource found",
+            r.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
     }
 }
